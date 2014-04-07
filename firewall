@@ -1,50 +1,61 @@
+# Flush filter and nat tables
 iptables -F
 iptables -F -t nat
+
+# Policy : drop all
 iptables -P INPUT DROP
 iptables -P OUTPUT DROP
 iptables -P FORWARD DROP
 
-# accept ping LAN->routeur
+# accept ping LAN -> routeur
 iptables -A INPUT -s 192.168.1.0/24 -d 192.168.1.2 -p icmp --icmp-type echo-request -j ACCEPT
 iptables -A OUTPUT -s 192.168.1.2 -d 192.168.1.0/24 -p icmp --icmp-type echo-reply -j ACCEPT
+
+# alternative
+#iptables -A INPUT -s 192.168.1.0/24 -i eth1 -p icmp --icmp-type echo-request -j ACCEPT
+#iptables -A OUTPUT -o eth1 -d 192.168.1.0/24 -p icmp --icmp-type echo-reply -j ACCEPT
 
 # accept ping DMZ -> routeur
 iptables -A INPUT -s 192.168.2.0/24 -d 192.168.2.2 -p icmp --icmp-type echo-request -j ACCEPT
 iptables -A OUTPUT -s 192.168.2.2 -d 192.168.2.0/24 -p icmp --icmp-type echo-reply -j ACCEPT
 
 # accept ping LAN -> DMZ
-iptables -A FORWARD -s 192.168.1.0/24 -p icmp --icmp-type echo-request -j ACCEPT
-#iptables -A FORWARD -s 192.168.2.0/24 -d 192.168.1.0/24 -p icmp --icmp-type echo-reply -j ACCEPT
-iptables -A FORWARD -d 192.168.1.0/24 -m state --state ESTABLISHED,RELATED -p icmp -j ACCEPT
+iptables -A FORWARD -s 192.168.1.0/24 -d 192.168.2.0/24 -p icmp --icmp-type echo-request -j ACCEPT
+iptables -A FORWARD -s 192.168.2.0/24 -d 192.168.1.0/24 -p icmp --icmp-type echo-reply -j ACCEPT
+# iptables -A FORWARD -d 192.168.1.0/24 -m state --state ESTABLISHED,RELATED -p icmp -j ACCEPT
 
 # translation d'adresse ping LAN -> DMZ
-iptables -t nat -A POSTROUTING -s 192.168.1.0/24 -d 192.168.2.0/24 -j SNAT --to-source 192.168.2.2 -p icmp --icmp-type echo-request
+# iptables -t nat -A POSTROUTING -s 192.168.1.0/24 -d 192.168.2.0/24 -j SNAT --to-source 192.168.2.2 -p icmp --icmp-type echo-request
 
-# accept http LAN -> DMZ
-iptables -A FORWARD -s 192.168.1.0/24 -d 192.168.2.0/24 -p tcp --dport 8080 -j ACCEPT
-iptables -A FORWARD -s 192.168.2.0/24 -d 192.168.1.0/24 -p tcp -m state --state ESTABLISHED,RELATED -j ACCEPT
+# accept LAN -> serveur http DMZ (port 8080)
+iptables -A FORWARD -s 192.168.1.0/24 -d 192.168.2.1 -p tcp --dport 8080 -j ACCEPT
+iptables -A FORWARD -s 192.168.2.1 -d 192.168.1.0/24 -p tcp -m state --state ESTABLISHED,RELATED -j ACCEPT
 
-# translation d'adresse http LAN -> DMZ
-iptables -t nat -A POSTROUTING -s 192.168.1.0/24 -d 192.168.2.0/24 -j SNAT --to-source 192.168.2.2 -p tcp --dport 8080
+# translation d'adresse LAN -> serveur http DMZ
+# iptables -t nat -A POSTROUTING -s 192.168.1.0/24 -d 192.168.2.1 -j SNAT --to-source 192.168.2.2 -p tcp
 
-# accept ping google (173.194.40.198) -> routeur
-iptables -A OUTPUT -s 192.168.55.10 -d 173.194.40.198 -p icmp --icmp-type echo-request -j ACCEPT
-iptables -A INPUT -s 173.194.40.198 -d 192.168.55.10 -p icmp --icmp-type echo-reply -j ACCEPT
+# translation d'adresse LAN -> DMZ (tous les protocoles)
+# de manière générale nous pouvons remplacer les deux translations précédentes par celle-ci
+# afin de la généraliser à tous les protocoles
+iptables -t nat -A POSTROUTING -s 192.168.1.0/24 -d 192.168.2.1 -j SNAT --to-source 192.168.2.2
 
-# accept http LAN -> google (173.194.40.198)
-# ping vers ip 173.194.40.198
-iptables -t nat -A POSTROUTING -s 192.168.1.0/24 -p icmp -j MASQUERADE
+# 3.2 Filtrage LAN et Internet
+# IP Masquerade
+iptables -t nat -A POSTROUTING -s 192.168.1.0/24 -o eth0 -j MASQUERADE
+
+# ping LAN -> Internet
 iptables -A FORWARD -s 192.168.1.0/24 -o eth0 -p icmp --icmp-type echo-request -j ACCEPT
 iptables -A FORWARD -i eth0 -d 192.168.1.0/24 -m state --state ESTABLISHED,RELATED -p icmp -j ACCEPT
 
-# ping vers nom de domaine (google.com)
-iptables -t nat -A POSTROUTING -s 192.168.1.0/24 -p udp --dport 53 -j MASQUERADE
+# LAN -> DNS
 iptables -A FORWARD -s 192.168.1.0/24 -o eth0 -p udp --dport 53 -j ACCEPT
 iptables -A FORWARD -i eth0 -d 192.168.1.0/24 -p udp -m state --state ESTABLISHED,RELATED -j ACCEPT
 
-# accès serveur http google
-iptables -t nat -A POSTROUTING -s 192.168.1.0/24 -p tcp -m multiport --dports 80,443 -j MASQUERADE
+# accès LAN -> serveur http
 iptables -A FORWARD -s 192.168.1.0/24 -o eth0 -p tcp -m multiport --dports 80,443 -j ACCEPT
 iptables -A FORWARD -i eth0 -d 192.168.1.0/24 -p tcp -m state --state ESTABLISHED,RELATED -j ACCEPT
 
-
+# 3.3 Filtrage DMZ et Internet
+iptables -t nat -A PREROUTING -i eth0 -d 10.0.0.2 -p tcp --dport 80 -j DNAT --to-destination 192.168.2.1:8080
+iptables -A FORWARD -i eth0 -d 192.168.2.1 -p tcp --dport 8080 -j ACCEPT
+iptables -A FORWARD -s 192.168.2.1 -o eth0 -p tcp --sport 8080 -j ACCEPT
