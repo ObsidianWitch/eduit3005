@@ -91,6 +91,7 @@
 \section{Introduction}
 % postes utilisés 10,11,12
 % objectifs
+% brève présentation du lab créé à l'aide de Netkit
 
 \section{Câblage}
 % TODO parler de mii-tool
@@ -121,7 +122,7 @@
 Nous avons tout d'abord configuré les interfaces Ethernet des 3 machines, ajouté les passerelles par défaut pour LAN et DMZ, et activé le routage IP (IP forwarding) pour le routeur. Le routage IP permet de prendre des décisions concernant le chemin qu'un paquet doit prendre entre les différents réseaux.\\
 % TODO plus de détails ip forwarding
 
-\noindent Configuration du routeur
+\subsection{Configuration du PC Routeur}
 % TODO coloration syntaxique
 \begin{lstlisting}
 /*Router:~#*/ echo "1" > /proc/sys/net/ipv4/ip_forward
@@ -152,13 +153,13 @@ Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
 \hfill
 
 \begin{leftbar}
-\noindent % Q1. TODO Q1
+\noindent Q1. % TODO Q1
 %/proc/sys enable/disable kernel features
 %/proc/sys/net adjust network configuration on running machine
 %/proc/sys/net/ipv4
 \end{leftbar}
 
-\noindent Configuration du pc LAN
+\subsection{Configuration du PC LAN}
 \begin{lstlisting}
 /*LAN:~#*/ ifconfig eth0 down
 /*LAN:~#*/ ifconfig eth1 192.168.1.1 netmask 255.255.255.0 up
@@ -182,10 +183,7 @@ Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
 0.0.0.0         192.168.1.2     0.0.0.0         UG    0      0        0 eth1
 \end{lstlisting}
 
-La commande \emph{route -n} permet d'afficher la table de routage IP en remplaçant les noms d'hôtes (provenant par exemple du fichier /etc/hosts) par des adresses numériques. Le symbole * est remplacé par \emph{0.0.0.0}, ce qui désigne la route par défaut.
-\newpage
-
-\noindent Configuration du pc DMZ
+\subsection{Configuration du PC DMZ}
 \begin{lstlisting}
 /*DMZ:~#*/ ifconfig eth0 down
 /*DMZ:~#*/ ifconfig eth1 192.168.2.1 netmask 255.255.255.0 up
@@ -195,23 +193,100 @@ La commande \emph{route -n} permet d'afficher la table de routage IP en remplaç
 eth1      Link encap:Ethernet  HWaddr 86:e8:ec:bc:60:67
           inet addr:192.168.2.1  Bcast:192.168.2.255  Mask:255.255.255.0
           ...
+\end{lstlisting}
+\newpage
 
-/*DMZ:~#*/ route -n
+\subsection{Tables de routage}
+\begin{leftbar}
+	\noindent Q2. La commande \emph{route -n} permet d'afficher la table de routage IP en remplaçant les noms d'hôtes (provenant par exemple du fichier /etc/hosts) par des adresses numériques. Le symbole * est remplacé par \emph{0.0.0.0}, ce qui désigne la route par défaut. Les tables de routage sur les machines LAN, DMZ et Routeur sont les suivantes :
+	\begin{lstlisting}[caption=Table de routage LAN, numbers=none]
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+192.168.1.0     0.0.0.0         255.255.255.0   U     0      0        0 eth1
+0.0.0.0         192.168.1.2     0.0.0.0         UG    0      0        0 eth1
+	\end{lstlisting}
+	\begin{lstlisting}[caption=Table de routage DMZ, numbers=none]
 Kernel IP routing table
 Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
 192.168.2.0     0.0.0.0         255.255.255.0   U     0      0        0 eth1
 0.0.0.0         192.168.2.2     0.0.0.0         UG    0      0        0 eth1
-\end{lstlisting}
-
-\begin{leftbar}
-\noindent Q2 %TODO Q2
+	\end{lstlisting}
+	\begin{lstlisting}[caption=Table de routage Routeur, numbers=none]
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+192.168.2.0     0.0.0.0         255.255.255.0   U     0      0        0 eth2
+192.168.1.0     0.0.0.0         255.255.255.0   U     0      0        0 eth1
+10.0.0.0        0.0.0.0         255.0.0.0       U     0      0        0 eth0
+0.0.0.0         10.0.0.1        0.0.0.0         UG    0      0        0 eth0
+	\end{lstlisting}
 \end{leftbar}
 
-Suite aux configurations effectuées précédemment, il est possible d'effectuer des pings entre les 3 machines.
+Suite aux configurations effectuées précédemment, il est possible d'effectuer des pings entre les 3 machines.\\
 % TODO listing
 
-% TODO édition fichier httpd.conf séance VS Netkit
-% TODO screenshot lynx LAN + start httpd DMZ + tcpdump routeur (side by side)
+\subsection{Configuration du serveur web sur le PC DMZ}
+Nous souhaitons ensuite modifier la configuration du serveur http Apache (httpd) pour remplacer le port d'écoute par défaut 80 par le port 8080. Pour cela nous avons modifié le fichier suivant.
+\begin{lstlisting}[caption=/etc/httpd/conf/httpd.conf]
+Listen 8080
+\end{lstlisting}
+\hfill
+
+\noindent \textbf{N.B.} Sous une machine (Debian testing) créée à l'aide de netkit utilisant le package apache2 et une configuration par défaut, nous avons dû modifier les fichiers \textbf{/etc/apache2/ports.conf} et \textbf{/etc/apache2/sites-enabled/000-default}. Le premier fichier nous a permis de remplacer le port d'écoute par défaut, le second de modifier le port du VirtualHost (les serveurs virtuels permettent de faire fonctionner plusieurs serveurs web sur une même machine, ici nous n'avons qu'un seul VirtualHost que nous souhaitons associé au port 8080).
+
+\begin{lstlisting}[caption=/etc/apache2/ports.conf, escapechar=@]
+# If you just change the port or add more ports here, you will likely also
+# have to change the VirtualHost statement in
+# /etc/apache2/sites-enabled/000-default
+# This is also true if you have upgraded from before 2.2.9-3 (i.e. from
+# Debian etch). See /usr/share/doc/apache2.2-common/NEWS.Debian.gz and
+# README.Debian.gz
+
+@\textbf{NameVirtualHost *:8080}@
+@\textbf{Listen 8080}@
+
+<IfModule mod_ssl.c>
+    # SSL name based virtual hosts are not yet supported, therefore no
+    # NameVirtualHost statement here
+    Listen 443
+</IfModule>
+\end{lstlisting}
+
+\begin{lstlisting}[caption=/etc/apache2/sites-enabled/000-default, escapechar=\%]
+%\textbf{<VirtualHost *:8080>}%
+        ServerAdmin webmaster@localhost
+
+        DocumentRoot /var/www/
+        <Directory />
+                Options FollowSymLinks
+                AllowOverride None
+        </Directory>
+		...
+\end{lstlisting}
+
+\noindent Une fois les fichiers de configuration modifiés, il faut relancer le serveur web :
+\begin{lstlisting}
+/etc/init.d/httpd restart
+
+OU (en fonction de la distribution)
+
+/etc/init.d/apache2 restart
+\end{lstlisting}
+\hfill
+
+Ci-dessous deux captures d'écran de la machine LAN accédant à \textbf{192.168.2.1} (DMZ) sur le port 8080 avec le navigateur web Lynx, et de la machine DMZ observant les paquets reçus sur son interface eth1. Le routeur achemine les paquets de la machine LAN vers la machine DMZ (192.168.1.1:59904 > 192.168.2.1:8080), puis la machine DMZ répond aux requêtes de la machine LAN en envoyant les paquets sur l'interface du routeur à laquelle elle est connectée (192.168.2.1:8080 > 192.168.1.1:59904).
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[scale=0.68]{sch3LAN.png}
+	\caption{Accès au serveur web (DMZ) depuis Lynx (LAN)}
+\end{figure}
+\newpage
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[scale=0.68]{sch3DMZ.png}
+	\caption{Paquets reçus par le serveur web (DMZ)}
+\end{figure}
 \newpage
 
 % TODO bibliography
