@@ -119,8 +119,7 @@
 \newpage
 
 \section{Routage classique}
-Nous avons tout d'abord configuré les interfaces Ethernet des 3 machines, ajouté les passerelles par défaut pour LAN et DMZ, et activé le routage IP (IP forwarding) pour le routeur. Le routage IP permet de prendre des décisions concernant le chemin qu'un paquet doit prendre entre les différents réseaux.\\
-% TODO plus de détails ip forwarding
+Nous avons tout d'abord configuré les interfaces Ethernet des 3 machines, ajouté les passerelles par défaut pour LAN et DMZ, et activé le routage IP (IP forwarding) pour le routeur. Le routage IP permet de prendre des décisions concernant le chemin qu'un paquet doit prendre entre les différents réseaux.
 
 \subsection{Configuration du PC Routeur}
 % TODO coloration syntaxique
@@ -153,10 +152,8 @@ Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
 \hfill
 
 \begin{leftbar}
-\noindent Q1. % TODO Q1
-%/proc/sys enable/disable kernel features
-%/proc/sys/net adjust network configuration on running machine
-%/proc/sys/net/ipv4
+\noindent Q1. Le répertoire \textbf{/proc/sys} contient des fichiers et sous-répertoires permettant d'activer ou désactiver immédiatement des fonctionnalités du kernel. Le répertoire \textbf{/proc/sys/net} concerne des fonctionnalités réseau, et \textbf{/proc/sys/net/ipv4} concerne plus particulièrement les fonctionnalités liées au protocole IPv4. Par exemple, le fichier \textbf{/proc/sys/net/ipv4/ip\_forward} permet d'activer le routage. Le fichier \textbf{/proc/sys/net/ipv4/icmp\_echo\_ignore\_all} permet d'ignorer les requêtes ECHO du protocole ICMP, ainsi la commande \emph{ping} utilisant ce protocole voit ses requêtes ignorées par une machine ayant \emph{icmp\_echo\_ignore\_all} activé.
+% TODO serveurs actifs netstat
 \end{leftbar}
 
 \subsection{Configuration du PC LAN}
@@ -272,12 +269,24 @@ OU (en fonction de la distribution)
 \end{lstlisting}
 \hfill
 
-Ci-dessous deux captures d'écran de la machine LAN accédant à \textbf{192.168.2.1} (DMZ) sur le port 8080 avec le navigateur web Lynx, et de la machine DMZ observant les paquets reçus sur son interface eth1. Le routeur achemine les paquets de la machine LAN vers la machine DMZ (192.168.1.1:59904 > 192.168.2.1:8080), puis la machine DMZ répond aux requêtes de la machine LAN en envoyant les paquets sur l'interface du routeur à laquelle elle est connectée (192.168.2.1:8080 > 192.168.1.1:59904).
+\noindent On peut ensuite vérifier à l'aide de la commande ps que le serveur est bien lancé :
+\begin{lstlisting}
+/*DMZ:~#*/ ps aux | grep apache
+root      1010  0.0  8.4  13136  2736 ?        Ss   20:47   0:00 /usr/sbin/apache2 -k start
+www-data  1011  0.0  5.9  12908  1928 ?        S    20:47   0:00 /usr/sbin/apache2 -k start
+www-data  1013  0.0 10.3 234696  3352 ?        Sl   20:47   0:00 /usr/sbin/apache2 -k start
+www-data  1018  0.0 10.3 234696  3340 ?        Sl   20:47   0:00 /usr/sbin/apache2 -k start
+root      1116  0.0  2.1   3476   680 tty0     S+   23:45   0:00 grep --color apache
+\end{lstlisting}
+\hfill
+
+Ci-dessous deux captures d'écran (figures \ref{fig:sch3lan} et \ref{fig:sch3dmz}) de la machine LAN accédant à \textbf{192.168.2.1} (DMZ) sur le port 8080 avec le navigateur web Lynx, et de la machine DMZ observant les paquets reçus sur son interface eth1. Le routeur achemine les paquets de la machine LAN vers la machine DMZ (192.168.1.1:59904 > 192.168.2.1:8080), puis la machine DMZ répond aux requêtes de la machine LAN en envoyant les paquets sur l'interface du routeur à laquelle elle est connectée (192.168.2.1:8080 > 192.168.1.1:59904).
 
 \begin{figure}[h!]
 	\centering
-	\includegraphics[scale=0.68]{sch3LAN.png}
+	\includegraphics[scale=0.62]{sch3LAN.png}
 	\caption{Accès au serveur web (DMZ) depuis Lynx (LAN)}
+	\label{fig:sch3lan}
 \end{figure}
 \newpage
 
@@ -285,6 +294,7 @@ Ci-dessous deux captures d'écran de la machine LAN accédant à \textbf{192.168
 	\centering
 	\includegraphics[scale=0.68]{sch3DMZ.png}
 	\caption{Paquets reçus par le serveur web (DMZ)}
+	\label{fig:sch3dmz}
 \end{figure}
 \newpage
 
