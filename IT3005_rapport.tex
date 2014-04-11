@@ -52,6 +52,7 @@
 % Code listings
 \usepackage{listings}
 \definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{steelblue}{rgb}{0.16,0.37,0.58}
 \definecolor{gray}{rgb}{0.5,0.5,0.5}
 \definecolor{mauve}{rgb}{0.58,0,0.82}
 \definecolor{blue}{rgb}{0,0,0.7}
@@ -62,7 +63,7 @@
 	basicstyle=\scriptsize,
 	numbers=left,                   % where to put the line-numbers
   	numberstyle=\tiny\color{gray},
-	commentstyle=\color{dkgreen},
+	commentstyle=\color{steelblue},
 	stringstyle=\color{BrickRed},
 	backgroundcolor=\color{shadecolor},
     keywordstyle=\color{OliveGreen},
@@ -70,8 +71,9 @@
  	rulecolor=\color{black},
 	emph={},
 	emphstyle=\color{mauve},
-	morekeywords={},
+	morekeywords=[2]{obside@obsideb, Router, LAN, DMZ},
 	keywordstyle={\color{black}},
+	keywordstyle=[2]{\color{dkgreen}},
 	showstringspaces=false,
   	tabsize=4,
 	moredelim=[is][\small\ttfamily]{/*}{*/},
@@ -116,29 +118,29 @@ Les machines virtuelles associées au lab décrites par le fichier de configurat
 \begin{lstlisting}
 obside@obsideb:~$ ifconfig
 ...
-nk_tap_obside Link encap:Ethernet  HWaddr ca:f2:21:69:b3:97  
+nk_tap_obside Link encap:Ethernet  HWaddr ca:f2:21:69:b3:97
           inet addr:10.0.0.1  Bcast:10.255.255.255  Mask:255.0.0.0
           inet6 addr: fe80::c8f2:21ff:fe69:b397/64 Scope:Link
           UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
           RX packets:66 errors:0 dropped:0 overruns:0 frame:0
           TX packets:84 errors:0 dropped:0 overruns:0 carrier:0
-          collisions:0 txqueuelen:500 
+          collisions:0 txqueuelen:500
           RX bytes:5032 (4.9 KiB)  TX bytes:10164 (9.9 KiB)
 ...
 
 obside@obsideb:~$ sudo iptables -L -t nat
 Chain PREROUTING (policy ACCEPT)
-target     prot opt source               destination         
+target     prot opt source               destination
 
 Chain INPUT (policy ACCEPT)
-target     prot opt source               destination         
+target     prot opt source               destination
 
 Chain OUTPUT (policy ACCEPT)
-target     prot opt source               destination         
+target     prot opt source               destination
 
 Chain POSTROUTING (policy ACCEPT)
-target     prot opt source               destination         
-MASQUERADE  all  --  anywhere             anywhere  
+target     prot opt source               destination
+MASQUERADE  all  --  anywhere             anywhere
 \end{lstlisting}
 Une fois les VMs éteintes, la commande \emph{vclean --clean-all} permet de retirer les modifications apportées au PC hôte.
 
@@ -170,13 +172,12 @@ Le rapport décrira les différentes étapes du TP en suivant le plan d'adressag
 Nous avons tout d'abord configuré les interfaces Ethernet des 3 machines, ajouté les passerelles par défaut pour LAN et DMZ, et activé le routage IP (IP forwarding) pour le routeur. Le routage IP permet de prendre des décisions concernant le chemin qu'un paquet doit prendre entre les différents réseaux.
 
 \subsection{Configuration du PC Routeur}
-% TODO coloration syntaxique
 \begin{lstlisting}
-/*Router:~#*/ echo "1" > /proc/sys/net/ipv4/ip_forward
-/*Router:~#*/ ifconfig eth1 192.168.1.2 netmask 255.255.255.0 up
-/*Router:~#*/ ifconfig eth2 192.168.2.2 netmask 255.255.255.0 up
+Router/*:~#*/ echo "1" > /proc/sys/net/ipv4/ip_forward
+Router/*:~#*/ ifconfig eth1 192.168.1.2 netmask 255.255.255.0 up
+Router/*:~#*/ ifconfig eth2 192.168.2.2 netmask 255.255.255.0 up
 
-/*Router:~#*/ ifconfig
+Router/*:~#*/ ifconfig
 eth0      Link encap:Ethernet  HWaddr 76:f5:98:50:22:50
           inet addr:10.0.0.2  Bcast:10.255.255.255  Mask:255.0.0.0
           ...
@@ -206,11 +207,11 @@ Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
 
 \subsection{Configuration du PC LAN}
 \begin{lstlisting}
-/*LAN:~#*/ ifconfig eth0 down
-/*LAN:~#*/ ifconfig eth1 192.168.1.1 netmask 255.255.255.0 up
-/*LAN:~#*/ route add default gw 192.168.1.2 eth1
+LAN/*:~#*/ ifconfig eth0 down
+LAN/*:~#*/ ifconfig eth1 192.168.1.1 netmask 255.255.255.0 up
+LAN/*:~#*/ route add default gw 192.168.1.2 eth1
 
-/*LAN:~#*/ ifconfig
+LAN/*:~#*/ ifconfig
 eth1      Link encap:Ethernet  HWaddr 42:a7:57:d3:a5:1b
           inet addr:192.168.1.1  Bcast:192.168.1.255  Mask:255.255.255.0
           ...
@@ -230,11 +231,11 @@ Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
 
 \subsection{Configuration du PC DMZ}
 \begin{lstlisting}
-/*DMZ:~#*/ ifconfig eth0 down
-/*DMZ:~#*/ ifconfig eth1 192.168.2.1 netmask 255.255.255.0 up
-/*DMZ:~#*/ route add default gw 192.168.2.2 eth1
+DMZ/*:~#*/ ifconfig eth0 down
+DMZ/*:~#*/ ifconfig eth1 192.168.2.1 netmask 255.255.255.0 up
+DMZ/*:~#*/ route add default gw 192.168.2.2 eth1
 
-/*DMZ:~#*/ ifconfig
+DMZ/*:~#*/ ifconfig
 eth1      Link encap:Ethernet  HWaddr 86:e8:ec:bc:60:67
           inet addr:192.168.2.1  Bcast:192.168.2.255  Mask:255.255.255.0
           ...
@@ -319,7 +320,7 @@ OU (en fonction de la distribution)
 
 \noindent On peut ensuite vérifier à l'aide de la commande \emph{ps} que le serveur est bien lancé :
 \begin{lstlisting}
-/*DMZ:~#*/ ps aux | grep apache
+DMZ/*:~#*/ ps aux | grep apache
 root      1010  0.0  8.4  13136  2736 ?        Ss   20:47   0:00 /usr/sbin/apache2 -k start
 www-data  1011  0.0  5.9  12908  1928 ?        S    20:47   0:00 /usr/sbin/apache2 -k start
 www-data  1013  0.0 10.3 234696  3352 ?        Sl   20:47   0:00 /usr/sbin/apache2 -k start
@@ -368,12 +369,12 @@ La politique par défaut pour les 3 chaînes (INPUT, OUTPUT, FORWARD) est de rej
 \begin{leftbar}
 	\noindent Q4. Après exécution du script, les règles d'iptables peuvent être observées à l'aide de la commande \emph{iptables -L}. Nous pouvons observer que la politique par défaut est effectivement le rejet de paquet pour chaque chaîne (e.g. \emph{Chain INPUT (policy DROP)}).
 	\begin{lstlisting}[numbers=none]
-/*Router:~#*/ iptables -L
+Router/*:~#*/ iptables -L
 Chain INPUT (policy DROP)
-target     prot opt source               destination         
+target     prot opt source               destination
 
 Chain FORWARD (policy DROP)
-target     prot opt source               destination         
+target     prot opt source               destination
 
 Chain OUTPUT (policy DROP)
 target     prot opt source               destination
@@ -391,7 +392,7 @@ iptables -A INPUT -s 192.168.1.0/24 -d 192.168.1.2 -p icmp --icmp-type echo-requ
 iptables -A OUTPUT -s 192.168.1.2 -d 192.168.1.0/24 -p icmp --icmp-type echo-reply -j ACCEPT
 	\end{lstlisting}
 	\hfill
-	
+
 	\noindent Une alternative possible est d'autoriser les requêtes du protocole ICMP provenant du réseau LAN (\textbf{192.168.1.0/24}) adressées à l'interface \textbf{eth1} du routeur (reliée au réseau LAN), puis d'autoriser les réponses du protocole ICMP sortant du routeur par l'interface \textbf{eth1} en direction du réseau LAN.
 	\begin{lstlisting}[numbers=none]
 # alternative
@@ -399,7 +400,7 @@ iptables -A INPUT -s 192.168.1.0/24 -i eth1 -p icmp --icmp-type echo-request -j 
 iptables -A OUTPUT -o eth1 -d 192.168.1.0/24 -p icmp --icmp-type echo-reply -j ACCEPT
 	\end{lstlisting}
 	\hfill
-	
+
 	\noindent Une autre alternative possible pour la sortie du routeur est d'autoriser les paquets du protocole ICMP ayant déjà une connexion établie. Nous pouvons aussi par exemple retirer les options -s et/ou -d pour réduire les conditions devant être remplies pour qu'une réponse soit acceptée.
 	\begin{lstlisting}[numbers=none]
 iptables -A OUTPUT -s 192.168.1.2 -d 192.168.1.0/24 -p icmp -m state --state ESTABLISHED,RELATED -j ACCEPT
@@ -426,14 +427,14 @@ iptables -A FORWARD -s 192.168.2.0/24 -d 192.168.1.0/24 -p icmp --icmp-type echo
 
 Le PC LAN peut à présent envoyer un ping à destination du PC DMZ. Ci-dessous l'exécution d'un ping de LAN vers DMZ et un tcpdump sur la machine DMZ.
 \begin{lstlisting}
-/*LAN:~#*/ ping 192.168.2.1
+LAN/*:~#*/ ping 192.168.2.1
 PING 192.168.2.1 (192.168.2.1) 56(84) bytes of data.
 64 bytes from 192.168.2.1: icmp_seq=1 ttl=63 time=0.245 ms
 64 bytes from 192.168.2.1: icmp_seq=2 ttl=63 time=0.271 ms
 64 bytes from 192.168.2.1: icmp_seq=3 ttl=63 time=0.630 ms
 ...
 -----------------------------------------------------------------------------------------------
-/*DMZ:~#*/ tcpdump -ni eth1
+DMZ/*:~#*/ tcpdump -ni eth1
 tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
 listening on eth1, link-type EN10MB (Ethernet), capture size 96 bytes
 07:34:05.156294 IP 192.168.1.1 > 192.168.2.1: ICMP echo request, id 22530, seq 1, length 64
@@ -454,25 +455,25 @@ iptables -t nat -A POSTROUTING -s 192.168.1.0/24 -d 192.168.2.0/24 -j SNAT --to-
 	\end{lstlisting}
 	La chaîne POSTROUTING associée à la cible SNAT permet de masquer l'émetteur d'un paquet par l'IP précisée par l'option \emph{-\--to-source}. Ci-dessous un ping du PC LAN (\textbf{192.168.1.1}) vers le PC DMZ (\textbf{192.168.2.1}), et un tcpdump effectué sur le PC DMZ.
 	\begin{lstlisting}[numbers=none]
-/*LAN:~#*/ ping 192.168.2.1
+LAN/*:~#*/ ping 192.168.2.1
 PING 192.168.2.1 (192.168.2.1) 56(84) bytes of data.
 64 bytes from 192.168.2.1: icmp_seq=1 ttl=63 time=19.2 ms
 64 bytes from 192.168.2.1: icmp_seq=2 ttl=63 time=0.613 ms
 64 bytes from 192.168.2.1: icmp_seq=3 ttl=63 time=0.514 m
 ...
 -----------------------------------------------------------------------------------------------
-/*Router:~#*/ iptables -L -t nat
+Router/*:~#*/ iptables -L -t nat
 Chain PREROUTING (policy ACCEPT)
-target     prot opt source               destination         
+target     prot opt source               destination
 
 Chain POSTROUTING (policy ACCEPT)
-target     prot opt source               destination         
-SNAT       icmp --  192.168.1.0/24       192.168.2.0/24      icmp echo-request to:192.168.2.2 
+target     prot opt source               destination
+SNAT       icmp --  192.168.1.0/24       192.168.2.0/24      icmp echo-request to:192.168.2.2
 
 Chain OUTPUT (policy ACCEPT)
 target     prot opt source               destination
 -----------------------------------------------------------------------------------------------
-/*DMZ:~#*/ tcpdump -ni eth1
+DMZ/*:~#*/ tcpdump -ni eth1
 tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
 listening on eth1, link-type EN10MB (Ethernet), capture size 96 bytes
 07:49:06.399986 arp who-has 192.168.2.1 tell 192.168.2.2
@@ -505,9 +506,9 @@ iptables -t nat -A POSTROUTING -s 192.168.1.0/24 -d 192.168.2.1 -j SNAT --to-sou
 	\end{lstlisting}
 	Ci-dessous le \emph{tcpdump} effectué sur la machine DMZ pour un accès au serveur http depuis le PC LAN:
 	\begin{lstlisting}[numbers=none]
-/*LAN:~#*/ lynx 192.168.2.1:8080
+LAN/*:~#*/ lynx 192.168.2.1:8080
 -----------------------------------------------------------------------------------------------
-/*DMZ:~#*/ tcpdump -ni eth1
+DMZ/*:~#*/ tcpdump -ni eth1
 tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
 listening on eth1, link-type EN10MB (Ethernet), capture size 96 bytes
 08:27:05.666691 IP 192.168.2.2.43830 > 192.168.2.1.8080: S 1997685473:1997685473(0) win 5840 <mss 1460,sackOK,timestamp 38270691 0,nop,wscale 1>
@@ -532,7 +533,7 @@ iptables -t nat -A POSTROUTING -s 192.168.1.0/24 -d 192.168.2.0/24 -j SNAT --to-
 \subsection{Filtrage LAN et Internet}
 Les machines du réseau LAN ne doivent pas être directement visibles d'Internet. Nous devons donc tout d'abord désactiver l'interface \textbf{eth0} sur le PC LAN pour ne plus avoir d'accès direct à Internet (déjà effectué précédemment).
 \begin{lstlisting}
-/*LAN:~#*/ ifconfig eth0 down
+LAN/*:~#*/ ifconfig eth0 down
 \end{lstlisting}
 
 \begin{leftbar}
@@ -572,14 +573,14 @@ iptables -A FORWARD -i eth0 -d 192.168.1.0/24 -p udp -m state --state ESTABLISHE
 \subsection{Filtrage DMZ et Internet}
 Le PC DMZ ne doit pas être directement visible d'Internet, nous devons donc désactiver son interface eth0 (déjà effectué précédemment).
 \begin{lstlisting}
-/*DMZ:~#*/ ifconfig eth0 down
+DMZ/*:~#*/ ifconfig eth0 down
 \end{lstlisting}
 De plus, nous allons utiliser le PC LAN pour simuler un accès d'une machine Internet. Nous devons donc réactiver son interface eth0 et désactiver son interface eth1. Sous Netkit, nous devons également ajouter la passerelle par défaut pour eth0 ayant pour IP celle de l'interface ajoutée sur le PC hôte.
 \begin{lstlisting}
-/*LAN:~#*/ ifconfig eth1 down
-/*LAN:~#*/ ifconfig eth0 up
-/*LAN:~#*/ route add default gw 10.0.0.1 eth0
-/*LAN:~#*/ route -n
+LAN/*:~#*/ ifconfig eth1 down
+LAN/*:~#*/ ifconfig eth0 up
+LAN/*:~#*/ route add default gw 10.0.0.1 eth0
+LAN/*:~#*/ route -n
 Kernel IP routing table
 Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
 10.0.0.0        0.0.0.0         255.0.0.0       U     0      0        0 eth0
@@ -599,9 +600,9 @@ iptables -A FORWARD -s 192.168.2.1 -o eth0 -p tcp --sport 8080 -m state --state 
 \begin{leftbar}
 	\noindent Q13. L'option \emph{-w} de \emph{tcpdump} permet d'écrire les paquets reçus dans un fichier, et l'option \emph{-s 0} permet de ne pas tronquer les paquets.
 	\begin{lstlisting}[numbers=none]
-/*LAN:~#*/ lynx 10.0.0.2
+LAN/*:~#*/ lynx 10.0.0.2
 -----------------------------------------------------------------------------------------------
-/*DMZ:~#*/ tcpdump -ni eth1 -s 0 -w /hosthome/Documents/dump2.pcap
+DMZ/*:~#*/ tcpdump -ni eth1 -s 0 -w /hosthome/Documents/dump2.pcap
 tcpdump: listening on eth1, link-type EN10MB (Ethernet), capture size 65535 bytes
 ^C12 packets captured
 12 packets received by filter
