@@ -15,6 +15,10 @@ iptables -A OUTPUT -s 192.168.1.2 -d 192.168.1.0/24 -p icmp --icmp-type echo-rep
 #iptables -A INPUT -s 192.168.1.0/24 -i eth1 -p icmp --icmp-type echo-request -j ACCEPT
 #iptables -A OUTPUT -o eth1 -d 192.168.1.0/24 -p icmp --icmp-type echo-reply -j ACCEPT
 
+# alternative2
+#iptables -A INPUT -s 192.168.1.0/24 -d 192.168.1.2 -p icmp --icmp-type echo-request -j ACCEPT
+#iptables -A OUTPUT -s 192.168.1.2 -d 192.168.1.0/24 -p icmp -m state --state ESTABLISHED,RELATED -j ACCEPT
+
 # accept ping DMZ -> routeur
 iptables -A INPUT -s 192.168.2.0/24 -d 192.168.2.2 -p icmp --icmp-type echo-request -j ACCEPT
 iptables -A OUTPUT -s 192.168.2.2 -d 192.168.2.0/24 -p icmp --icmp-type echo-reply -j ACCEPT

@@ -27,6 +27,7 @@
 \usepackage[usenames,dvipsnames]{xcolor}
 
 % Colored frame
+\usepackage{mdframed}
 \usepackage{framed}
 \definecolor{shadecolor}{rgb}{0.96,0.96,0.96}
 \definecolor{TFFrameColor}{rgb}{0.96,0.96,0.96}
@@ -54,6 +55,8 @@
 \definecolor{gray}{rgb}{0.5,0.5,0.5}
 \definecolor{mauve}{rgb}{0.58,0,0.82}
 \definecolor{blue}{rgb}{0,0,0.7}
+\definecolor{lightred}{rgb}{1,0.96,0.96}
+\definecolor{darkred}{rgb}{0.85,0.33,0.31}
 \lstset{
 	language=bash,
 	basicstyle=\scriptsize,
@@ -71,7 +74,8 @@
 	keywordstyle={\color{black}},
 	showstringspaces=false,
   	tabsize=4,
-	moredelim=[is][\small\ttfamily]{/*}{*/}
+	moredelim=[is][\small\ttfamily]{/*}{*/},
+	breaklines=true
 }
 
 % Title page
@@ -82,11 +86,11 @@
 \date{\today}
 
 \begin{document}
-\maketitle
+\maketitle % TODO lien vers archive contenant tous les fichiers du TP
 \newpage
 
-%\tableofcontents
-%\newpage
+\tableofcontents
+\newpage
 
 \section{Introduction}
 % postes utilisés 10,11,12
@@ -94,7 +98,54 @@
 % brève présentation du lab créé à l'aide de Netkit
 
 \section{Câblage}
-% TODO parler de mii-tool
+Lors de la séance nous utilisions les postes 10 (LAN), 11 (Routeur) et 12 (DMZ). La première étape du TP consistait à câbler (câbles RJ45 croisés) la machine LAN au routeur, et la DMZ au routeur. Nous avons tout d'abord câblé \textbf{A10 (LAN)} à \textbf{A11 (Routeur)}, puis avons executé \emph{mii-tool} ce qui nous a permis de déterminer que \textbf{A10} correspondait à \textbf{eth2} sur la machine LAN et que \textbf{A11} correspondait à \textbf{eth2} sur le routeur. Nous avons ensuite branché \textbf{B11 (Routeur)} à \textbf{A12 (DMZ)} et identifié avec \emph{mii-tool} que \emph{B11} correspondait à \textbf{eth1} sur le routeur, et \textbf{A12} correspondait à \textbf{eth1} sur la machine DMZ.\\
+
+Souhaitant réaliser de nouveau le TP chez nous, nous avons créé un lab pour Netkit. Le "câblage" de deux machines est décrit par des domaines de collision. Le listing ci-dessous contient la configuration du lab, celle-ci correspond à la figure \ref{fig:planadrnetkit}.
+\begin{lstlisting}[caption=lab.conf]
+LAB_DESCRIPTION="TP securite - DMZ/Firewall"
+
+LAN[0]=tap,10.0.0.1,10.0.0.4
+LAN[1]=A
+
+Router[0]=tap,10.0.0.1,10.0.0.2
+Router[1]=A
+Router[2]=B
+
+DMZ[0]=tap,10.0.0.1,10.0.0.3
+DMZ[1]=B
+\end{lstlisting}
+\textbf{N.B.} Dans le dossier contenant le fichier de configuration du lab, un fichier resolv.conf permettant de spécifier les serveurs DNS à utiliser a été placé dans Router/etc. Lors du lancement de la VM Router, le fichier /etc/resolv.conf par défaut sera remplacé par celui décrit précédemment.\\
+
+Les machines virtuelles associées au lab décrites par le fichier de configuration ci-dessus peuvent être lancées à l'aide de la commande \emph{lstart}. Les interfaces \emph{tap} permettent de partager la connexion Internet de la machine hôte avec une VM. Si des interfaces tap sont présentes, lors de l'exécution de \emph{lstart} une interfacce sera ajoutée sur le PC hôte ainsi qu'une règle nat iptable activant l'IP masquerading (voir listing ci-dessous).
+
+\begin{lstlisting}
+obside@obsideb:~$ ifconfig
+...
+nk_tap_obside Link encap:Ethernet  HWaddr ca:f2:21:69:b3:97  
+          inet addr:10.0.0.1  Bcast:10.255.255.255  Mask:255.0.0.0
+          inet6 addr: fe80::c8f2:21ff:fe69:b397/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:66 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:84 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:500 
+          RX bytes:5032 (4.9 KiB)  TX bytes:10164 (9.9 KiB)
+...
+
+obside@obsideb:~$ sudo iptables -L -t nat
+Chain PREROUTING (policy ACCEPT)
+target     prot opt source               destination         
+
+Chain INPUT (policy ACCEPT)
+target     prot opt source               destination         
+
+Chain OUTPUT (policy ACCEPT)
+target     prot opt source               destination         
+
+Chain POSTROUTING (policy ACCEPT)
+target     prot opt source               destination         
+MASQUERADE  all  --  anywhere             anywhere  
+\end{lstlisting}
+Une fois les VMs éteintes, la commande \emph{vclean --clean-all} permet de retirer les modifications apportées au PC hôte.
 
 \begin{figure}[h!]
 	\centering
@@ -111,7 +162,9 @@
 	\caption{Plan d'adressage}
 \end{figure}
 
-\noindent \textbf{N.B.} Le rapport décrira les différentes étapes du TP en suivant le plan d'adressage de la figure \ref{fig:planadrnetkit} (Netkit).
+\begin{mdframed}[backgroundcolor=lightred, linecolor=darkred]
+Le rapport décrira les différentes étapes du TP en suivant le plan d'adressage de la figure \ref{fig:planadrnetkit} (Netkit).
+\end{mdframed}
 
 % après câblage ping possibles: lan <-> routeur et dmz <-> routeur
 % il faut activer le routage IP sur le routeur
@@ -296,6 +349,71 @@ Ci-dessous deux captures d'écran (figures \ref{fig:sch3lan} et \ref{fig:sch3dmz
 	\caption{Paquets reçus par le serveur web (DMZ)}
 	\label{fig:sch3dmz}
 \end{figure}
+\newpage
+
+\section{Mise en oeuvre de la plate-forme sécurisée}
+Dans cette partie, nous allons établir des règles de filtrage (table \textbf{filter}) et de translation d'adresse (table \textbf{nat}) à l'aide d'iptables sur le routeur. Pour cela, nous avons créé un script firewall (\emph{/root/firewall}) contenant ces règles.
+
+\begin{leftbar}
+	\noindent Q3. Nous souhaitons tout d'abord supprimer les règles établies précédemment, puis rejeter par défaut tous les paquets (INPUT, OUTPUT et FORWARD). Nous établirons par la suite des règles permettant d'autoriser des paquets répondant à certains critères.
+	\begin{lstlisting}[numbers=none]
+# Flush filter and nat tables
+iptables -F
+iptables -F -t nat
+
+# Policy : drop all
+iptables -P INPUT DROP
+iptables -P OUTPUT DROP
+iptables -P FORWARD DROP
+	\end{lstlisting}
+\end{leftbar}
+
+La politique par défaut pour les 3 chaînes (INPUT, OUTPUT, FORWARD) et de rejeter les paquets, il n'est donc entre autres plus possible de ping les 3 PCs entre eux.
+
+\begin{leftbar}
+	\noindent Q4. Après exécution du script, les règles d'iptables peuvent être observées à l'aide de la commande \emph{iptables -L}. Nous pouvons observer que la politique par défaut est effectivement le rejet de paquet pour chaque chaîne (e.g. \emph{Chain INPUT (policy DROP)}).
+	\begin{lstlisting}[numbers=none]
+/*Router:~#*/ iptables -L
+Chain INPUT (policy DROP)
+target     prot opt source               destination         
+
+Chain FORWARD (policy DROP)
+target     prot opt source               destination         
+
+Chain OUTPUT (policy DROP)
+target     prot opt source               destination
+	\end{lstlisting}
+\end{leftbar}
+
+\subsection{Filtrage entre LAN et DMZ}
+Nous souhaitons cacher l'existence des machines du réseau LAN aux machines de la DMZ. Avant cela, nous allons établir des règles dans le firewall pour autoriser certains paquets.
+
+\begin{leftbar}
+	\noindent Q5. Nous allons tout d'abord autoriser le réseau LAN à envoyer des requêtes du protocole ICMP, puis le routeur à répndre à ces requêtes. Cela va permettre d'accepter un ping venant du réseau LAN (\textbf{192.168.1.0/24}) adressé à l'interface du Routeur côté LAN (\textbf{192.168.1.2}).
+	\begin{lstlisting}[numbers=none]
+# accept ping LAN -> routeur
+iptables -A INPUT -s 192.168.1.0/24 -d 192.168.1.2 -p icmp --icmp-type echo-request -j ACCEPT
+iptables -A OUTPUT -s 192.168.1.2 -d 192.168.1.0/24 -p icmp --icmp-type echo-reply -j ACCEPT
+	\end{lstlisting}
+	\hfill
+	
+	\noindent Une alternative possible est d'autoriser les requêtes du protocole ICMP provenant du réseau LAN (\textbf{192.168.1.0/24}) adressées à l'interface \textbf{eth1} du routeur (reliée au réseau LAN), puis d'autoriser les réponses du protocole ICMP sortant du routeur par l'interface \textbf{eth1} en direction du réseau LAN.
+	\begin{lstlisting}[numbers=none]
+# alternative
+iptables -A INPUT -s 192.168.1.0/24 -i eth1 -p icmp --icmp-type echo-request -j ACCEPT
+iptables -A OUTPUT -o eth1 -d 192.168.1.0/24 -p icmp --icmp-type echo-reply -j ACCEPT
+	\end{lstlisting}
+	\hfill
+	
+	\noindent Une autre alternative possible pour la sortie du routeur est d'autoriser les paquets du protocole ICMP ayant déjà une connexion établie. Nous pouvons aussi par exemple retirer les options -s et/ou -d pour réduire les conditions devant être remplies pour qu'une réponse soit acceptée.
+	\begin{lstlisting}[numbers=none]
+iptables -A OUTPUT -s 192.168.1.2 -d 192.168.1.0/24 -p icmp -m state --state ESTABLISHED,RELATED -j ACCEPT
+	\end{lstlisting}
+\end{leftbar}
+
+% TODO 3.2 désactiver eth0 lan
+% TODO 3.3 désactiver eth0 DMZ
+
 \newpage
 
 % TODO bibliography
