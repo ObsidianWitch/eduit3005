@@ -92,13 +92,8 @@
 \tableofcontents
 \newpage
 
-\section{Introduction}
-% postes utilisés 10,11,12
-% objectifs
-% brève présentation du lab créé à l'aide de Netkit
-
 \section{Câblage}
-Lors de la séance nous utilisions les postes 10 (LAN), 11 (Routeur) et 12 (DMZ). La première étape du TP consistait à câbler (câbles RJ45 croisés) la machine LAN au routeur, et la DMZ au routeur. Nous avons tout d'abord câblé \textbf{A10 (LAN)} à \textbf{A11 (Routeur)}, puis avons executé \emph{mii-tool} ce qui nous a permis de déterminer que \textbf{A10} correspondait à \textbf{eth2} sur la machine LAN et que \textbf{A11} correspondait à \textbf{eth2} sur le routeur. Nous avons ensuite branché \textbf{B11 (Routeur)} à \textbf{A12 (DMZ)} et identifié avec \emph{mii-tool} que \emph{B11} correspondait à \textbf{eth1} sur le routeur, et \textbf{A12} correspondait à \textbf{eth1} sur la machine DMZ.\\
+Lors de la séance nous utilisions les postes 10 (LAN), 11 (Routeur) et 12 (DMZ). La première étape du TP consistait à câbler (câbles RJ45 croisés) la machine LAN au routeur, et la DMZ au routeur. Nous avons tout d'abord câblé \textbf{A10 (LAN)} à \textbf{A11 (Routeur)}, puis avons exécuté \emph{mii-tool} ce qui nous a permis de déterminer que \textbf{A10} correspondait à \textbf{eth2} sur la machine LAN et que \textbf{A11} correspondait à \textbf{eth2} sur le routeur. Nous avons ensuite branché \textbf{B11 (Routeur)} à \textbf{A12 (DMZ)} et identifié avec \emph{mii-tool} que \textbf{B11} correspondait à \textbf{eth1} sur le routeur, et \textbf{A12} correspondait à \textbf{eth1} sur la machine DMZ.\\
 
 Souhaitant réaliser de nouveau le TP chez nous, nous avons créé un lab pour Netkit. Le "câblage" de deux machines est décrit par des domaines de collision. Le listing ci-dessous contient la configuration du lab, celle-ci correspond à la figure \ref{fig:planadrnetkit}.
 \begin{lstlisting}[caption=lab.conf]
@@ -114,9 +109,9 @@ Router[2]=B
 DMZ[0]=tap,10.0.0.1,10.0.0.3
 DMZ[1]=B
 \end{lstlisting}
-\textbf{N.B.} Dans le dossier contenant le fichier de configuration du lab, un fichier resolv.conf permettant de spécifier les serveurs DNS à utiliser a été placé dans Router/etc. Lors du lancement de la VM Router, le fichier /etc/resolv.conf par défaut sera remplacé par celui décrit précédemment.\\
+\textbf{N.B.} Dans le dossier contenant le fichier de configuration du lab, un fichier resolv.conf permettant de spécifier les serveurs DNS à utiliser a été placé dans <machine>/etc (e.g. Router/etc). Lors du lancement de la VM correspondante, le fichier /etc/resolv.conf par défaut sera remplacé par celui décrit précédemment.\\
 
-Les machines virtuelles associées au lab décrites par le fichier de configuration ci-dessus peuvent être lancées à l'aide de la commande \emph{lstart}. Les interfaces \emph{tap} permettent de partager la connexion Internet de la machine hôte avec une VM. Si des interfaces tap sont présentes, lors de l'exécution de \emph{lstart} une interfacce sera ajoutée sur le PC hôte ainsi qu'une règle nat iptable activant l'IP masquerading (voir listing ci-dessous).
+Les machines virtuelles associées au lab décrites par le fichier de configuration ci-dessus peuvent être lancées à l'aide de la commande \emph{lstart}. Les interfaces \emph{tap} permettent de partager la connexion Internet de la machine hôte avec une VM. Si des interfaces tap sont présentes, lors de l'exécution de \emph{lstart} une interface sera ajoutée sur le PC hôte ainsi qu'une règle nat iptable activant l'IP masquerading (voir listing ci-dessous).
 
 \begin{lstlisting}
 obside@obsideb:~$ ifconfig
@@ -280,7 +275,7 @@ Listen 8080
 \end{lstlisting}
 \hfill
 
-\noindent \textbf{N.B.} Sous une machine (Debian testing) créée à l'aide de netkit utilisant le package apache2 et une configuration par défaut, nous avons dû modifier les fichiers \textbf{/etc/apache2/ports.conf} et \textbf{/etc/apache2/sites-enabled/000-default}. Le premier fichier nous a permis de remplacer le port d'écoute par défaut, le second de modifier le port du VirtualHost (les serveurs virtuels permettent de faire fonctionner plusieurs serveurs web sur une même machine, ici nous n'avons qu'un seul VirtualHost que nous souhaitons associé au port 8080).
+\noindent \textbf{N.B.} Sous une machine (Debian testing) créée à l'aide de netkit utilisant le package apache2 et une configuration par défaut, nous avons dû modifier les fichiers \textbf{/etc/apache2/ports.conf} et \textbf{/etc/apache2/sites-enabled/000-default}. Le premier fichier nous a permis de remplacer le port d'écoute par défaut, le second de modifier le port du VirtualHost (les serveurs virtuels permettent de faire fonctionner plusieurs serveurs web sur une même machine, ici nous n'avons qu'un seul VirtualHost que nous souhaitons associer au port 8080).
 
 \begin{lstlisting}[caption=/etc/apache2/ports.conf, escapechar=@]
 # If you just change the port or add more ports here, you will likely also
@@ -322,7 +317,7 @@ OU (en fonction de la distribution)
 \end{lstlisting}
 \hfill
 
-\noindent On peut ensuite vérifier à l'aide de la commande ps que le serveur est bien lancé :
+\noindent On peut ensuite vérifier à l'aide de la commande \emph{ps} que le serveur est bien lancé :
 \begin{lstlisting}
 /*DMZ:~#*/ ps aux | grep apache
 root      1010  0.0  8.4  13136  2736 ?        Ss   20:47   0:00 /usr/sbin/apache2 -k start
@@ -368,7 +363,7 @@ iptables -P FORWARD DROP
 	\end{lstlisting}
 \end{leftbar}
 
-La politique par défaut pour les 3 chaînes (INPUT, OUTPUT, FORWARD) et de rejeter les paquets, il n'est donc entre autres plus possible de ping les 3 PCs entre eux.
+La politique par défaut pour les 3 chaînes (INPUT, OUTPUT, FORWARD) est de rejeter les paquets, il n'est donc entre autres plus possible de ping les 3 PCs entre eux.
 
 \begin{leftbar}
 	\noindent Q4. Après exécution du script, les règles d'iptables peuvent être observées à l'aide de la commande \emph{iptables -L}. Nous pouvons observer que la politique par défaut est effectivement le rejet de paquet pour chaque chaîne (e.g. \emph{Chain INPUT (policy DROP)}).
@@ -389,7 +384,7 @@ target     prot opt source               destination
 Nous souhaitons cacher l'existence des machines du réseau LAN aux machines de la DMZ. Avant cela, nous allons établir des règles dans le firewall pour autoriser certains paquets.
 
 \begin{leftbar}
-	\noindent Q5. Nous allons tout d'abord autoriser le réseau LAN à envoyer des requêtes du protocole ICMP, puis le routeur à répndre à ces requêtes. Cela va permettre d'accepter un ping venant du réseau LAN (\textbf{192.168.1.0/24}) adressé à l'interface du Routeur côté LAN (\textbf{192.168.1.2}).
+	\noindent Q5. Nous allons tout d'abord autoriser le réseau LAN à envoyer des requêtes du protocole ICMP, puis le routeur à répndre à ces requêtes. Cela va permettre d'accepter un ping venant du réseau LAN (\textbf{192.168.1.0/24}) adressé à l'interface du routeur côté LAN (\textbf{192.168.1.2}).
 	\begin{lstlisting}[numbers=none]
 # accept ping LAN -> routeur
 iptables -A INPUT -s 192.168.1.0/24 -d 192.168.1.2 -p icmp --icmp-type echo-request -j ACCEPT
@@ -411,13 +406,230 @@ iptables -A OUTPUT -s 192.168.1.2 -d 192.168.1.0/24 -p icmp -m state --state EST
 	\end{lstlisting}
 \end{leftbar}
 
-% TODO 3.2 désactiver eth0 lan
-% TODO 3.3 désactiver eth0 DMZ
+\begin{leftbar}
+	\noindent Q6. De manière similaire, nous autorisons le réseau DMZ (\textbf{192.168.2.0/24}) à envoyer des ping à l'interface du routeur côté DMZ (\textbf{192.168.2.2}), puis au routeur d'envoyer une réponse à ces requêtes.
+	\begin{lstlisting}[numbers=none]
+# accept ping DMZ -> routeur
+iptables -A INPUT -s 192.168.2.0/24 -d 192.168.2.2 -p icmp --icmp-type echo-request -j ACCEPT
+iptables -A OUTPUT -s 192.168.2.2 -d 192.168.2.0/24 -p icmp --icmp-type echo-reply -j ACCEPT
+	\end{lstlisting}
+\end{leftbar}
 
+\begin{leftbar}
+	\noindent Q7. Enfin, à l'aide de règles FORWARD, nous souhaitons que le routeur laisse passer les requêtes du protocole ICMP provenant du réseau LAN (\textbf{192.168.1.0/24}) à destination du réseau DMZ (\textbf{192.168.2.0/24}), et les réponses du réseau DMZ à destination du réseau LAN.
+	\begin{lstlisting}[numbers=none]
+# accept ping LAN -> DMZ
+iptables -A FORWARD -s 192.168.1.0/24 -d 192.168.2.0/24 -p icmp --icmp-type echo-request -j ACCEPT
+iptables -A FORWARD -s 192.168.2.0/24 -d 192.168.1.0/24 -p icmp --icmp-type echo-reply -j ACCEPT
+	\end{lstlisting}
+\end{leftbar}
+
+Le PC LAN peut à présent envoyer un ping à destination du PC DMZ. Ci-dessous l'exécution d'un ping de LAN vers DMZ et un tcpdump sur la machine DMZ.
+\begin{lstlisting}
+/*LAN:~#*/ ping 192.168.2.1
+PING 192.168.2.1 (192.168.2.1) 56(84) bytes of data.
+64 bytes from 192.168.2.1: icmp_seq=1 ttl=63 time=0.245 ms
+64 bytes from 192.168.2.1: icmp_seq=2 ttl=63 time=0.271 ms
+64 bytes from 192.168.2.1: icmp_seq=3 ttl=63 time=0.630 ms
+...
+-----------------------------------------------------------------------------------------------
+/*DMZ:~#*/ tcpdump -ni eth1
+tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
+listening on eth1, link-type EN10MB (Ethernet), capture size 96 bytes
+07:34:05.156294 IP 192.168.1.1 > 192.168.2.1: ICMP echo request, id 22530, seq 1, length 64
+07:34:05.156838 IP 192.168.2.1 > 192.168.1.1: ICMP echo reply, id 22530, seq 1, length 64
+07:34:06.155243 IP 192.168.1.1 > 192.168.2.1: ICMP echo request, id 22530, seq 2, length 64
+07:34:06.155262 IP 192.168.2.1 > 192.168.1.1: ICMP echo reply, id 22530, seq 2, length 64
+07:34:07.155179 IP 192.168.1.1 > 192.168.2.1: ICMP echo request, id 22530, seq 3, length 64
+07:34:07.155250 IP 192.168.2.1 > 192.168.1.1: ICMP echo reply, id 22530, seq 3, length 64
+...
+\end{lstlisting}
+Le \emph{tcpdump} nous permet d'observer que des paquets de la machine LAN (\textbf{192.168.1.1}) correspondant à des requêtes ICMP (ICMP echo request) sont reçues par la machine DMZ (\textbf{192.168.2.1}), puis que des réponses ICMP (ICMP echo reply) sont envoyées de la machine DMZ vers la machine LAN. L'option \emph{-n} permet de ne pas convertir les adresses, c'est à dire de conserver des adresses numériques.\\
+
+\begin{leftbar}
+	\noindent Q8. Nous souhaitons à présent à l'aide de la table nat d'\emph{iptables} faire la translation d'adresses du ping du réseau LAN vers la DMZ afin de masquer l'existence du réseau LAN à la DMZ.
+	\begin{lstlisting}[numbers=none]
+# translation d'adresse ping LAN -> DMZ
+iptables -t nat -A POSTROUTING -s 192.168.1.0/24 -d 192.168.2.0/24 -j SNAT --to-source 192.168.2.2 -p icmp --icmp-type echo-request
+	\end{lstlisting}
+	La chaîne POSTROUTING associée à la cible SNAT permet de masquer l'émetteur d'un paquet par l'IP précisée par l'option \emph{-\--to-source}. Ci-dessous un ping du PC LAN (\textbf{192.168.1.1}) vers le PC DMZ (\textbf{192.168.2.1}), et un tcpdump effectué sur le PC DMZ.
+	\begin{lstlisting}[numbers=none]
+/*LAN:~#*/ ping 192.168.2.1
+PING 192.168.2.1 (192.168.2.1) 56(84) bytes of data.
+64 bytes from 192.168.2.1: icmp_seq=1 ttl=63 time=19.2 ms
+64 bytes from 192.168.2.1: icmp_seq=2 ttl=63 time=0.613 ms
+64 bytes from 192.168.2.1: icmp_seq=3 ttl=63 time=0.514 m
+...
+-----------------------------------------------------------------------------------------------
+/*Router:~#*/ iptables -L -t nat
+Chain PREROUTING (policy ACCEPT)
+target     prot opt source               destination         
+
+Chain POSTROUTING (policy ACCEPT)
+target     prot opt source               destination         
+SNAT       icmp --  192.168.1.0/24       192.168.2.0/24      icmp echo-request to:192.168.2.2 
+
+Chain OUTPUT (policy ACCEPT)
+target     prot opt source               destination
+-----------------------------------------------------------------------------------------------
+/*DMZ:~#*/ tcpdump -ni eth1
+tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
+listening on eth1, link-type EN10MB (Ethernet), capture size 96 bytes
+07:49:06.399986 arp who-has 192.168.2.1 tell 192.168.2.2
+07:49:06.400679 arp reply 192.168.2.1 is-at 86:e8:ec:bc:60:67
+07:49:06.400021 IP 192.168.2.2 > 192.168.2.1: ICMP echo request, id 22786, seq 1, length 64
+07:49:06.400060 IP 192.168.2.1 > 192.168.2.2: ICMP echo reply, id 22786, seq 1, length 64
+07:49:07.405204 IP 192.168.2.2 > 192.168.2.1: ICMP echo request, id 22786, seq 2, length 64
+07:49:07.405254 IP 192.168.2.1 > 192.168.2.2: ICMP echo reply, id 22786, seq 2, length 64
+07:49:08.415065 IP 192.168.2.2 > 192.168.2.1: ICMP echo request, id 22786, seq 3, length 64
+07:49:08.415141 IP 192.168.2.1 > 192.168.2.2: ICMP echo reply, id 22786, seq 3, length 64
+...
+	\end{lstlisting}
+	Nous pouvons observer sur le \emph{tcpdump} ci-dessus que la source du paquet (initialement \textbf{192.168.1.1}) a été masquée et modifiée par l'IP de l'interface du routeur côté DMZ (\textbf{192.168.2.2}).
+\end{leftbar}
+\hfill
+
+Nous avons autorisé le ping de LAN vers DMZ puis masqué l'IP source des paquets provenant de LAN adressés à DMZ, nous souhaitons à présent faire de même pour l'accès au serveur http depuis le PC LAN.
+
+\begin{leftbar}
+	\noindent Q9. A l'aide de règles FORWARD, nous autorisons les requêtes du protocole TCP sur le port 8080 provenant du réseau LAN (\textbf{192.168.1.0/24}) et adressées au PC DMZ (\textbf{192.168.2.1}), puis les réponses du PC DMZ vers le réseau LAN pour les connexions déjà établies.
+	\begin{lstlisting}[numbers=none]
+# accept LAN -> serveur http DMZ (port 8080)
+iptables -A FORWARD -s 192.168.1.0/24 -d 192.168.2.1 -p tcp --dport 8080 -j ACCEPT
+iptables -A FORWARD -s 192.168.2.1 -d 192.168.1.0/24 -p tcp -m state --state ESTABLISHED,RELATED -j ACCEPT
+	\end{lstlisting}
+	Nous ajoutons ensuite une règle dans la table nat d'iptables permettant de masquer l'IP des machines du réseau LAN par l'IP de l'interface du routeur côté DMZ.
+	\begin{lstlisting}[numbers=none]
+# translation d'adresse LAN -> serveur http DMZ
+iptables -t nat -A POSTROUTING -s 192.168.1.0/24 -d 192.168.2.1 -j SNAT --to-source 192.168.2.2 -p tcp
+	\end{lstlisting}
+	Ci-dessous le \emph{tcpdump} effectué sur la machine DMZ pour un accès au serveur http depuis le PC LAN:
+	\begin{lstlisting}[numbers=none]
+/*LAN:~#*/ lynx 192.168.2.1:8080
+-----------------------------------------------------------------------------------------------
+/*DMZ:~#*/ tcpdump -ni eth1
+tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
+listening on eth1, link-type EN10MB (Ethernet), capture size 96 bytes
+08:27:05.666691 IP 192.168.2.2.43830 > 192.168.2.1.8080: S 1997685473:1997685473(0) win 5840 <mss 1460,sackOK,timestamp 38270691 0,nop,wscale 1>
+08:27:05.667630 IP 192.168.2.1.8080 > 192.168.2.2.43830: S 2000354492:2000354492(0) ack 1997685474 win 5792 <mss 1460,sackOK,timestamp 38271196 38270691,nop,wscale 1>
+08:27:05.666860 IP 192.168.2.2.43830 > 192.168.2.1.8080: . ack 1 win 2920 <nop,nop,timestamp 38270691 38271196>
+08:27:05.667287 IP 192.168.2.2.43830 > 192.168.2.1.8080: P 1:226(225) ack 1 win 2920 <nop,nop,timestamp 38270691 38271196>
+08:27:05.667311 IP 192.168.2.1.8080 > 192.168.2.2.43830: . ack 226 win 3432 <nop,nop,timestamp 38271196 38270691>
+08:27:05.669430 IP 192.168.2.1.8080 > 192.168.2.2.43830: P 1:359(358) ack 226 win 3432 <nop,nop,timestamp 38271196 38270691>
+08:27:05.669548 IP 192.168.2.1.8080 > 192.168.2.2.43830: F 359:359(0) ack 226 win 3432 <nop,nop,timestamp 38271196 38270691>
+08:27:05.669614 IP 192.168.2.2.43830 > 192.168.2.1.8080: . ack 359 win 3456 <nop,nop,timestamp 38270691 38271196>
+08:27:05.670869 IP 192.168.2.2.43830 > 192.168.2.1.8080: F 226:226(0) ack 360 win 3456 <nop,nop,timestamp 38270691 38271196>
+08:27:05.670888 IP 192.168.2.1.8080 > 192.168.2.2.43830: . ack 227 win 3432 <nop,nop,timestamp 38271196 38270691>
+
+	\end{lstlisting}
+\end{leftbar}
+
+Les deux règles de translation d'adresse définies précédemment peuvent être remplacées par une règle plus générale. Nous pouvons en effet masquer l'IP des paquets du réseau LAN adressés au réseau DMZ pour tous les protocoles.
+\begin{lstlisting}
+iptables -t nat -A POSTROUTING -s 192.168.1.0/24 -d 192.168.2.0/24 -j SNAT --to-source 192.168.2.2
+\end{lstlisting}
+
+\subsection{Filtrage LAN et Internet}
+Les machines du réseau LAN ne doivent pas être directement visibles d'Internet. Nous devons donc tout d'abord désactiver l'interface \textbf{eth0} sur le PC LAN pour ne plus avoir d'accès direct à Internet (déjà effectué précédemment).
+\begin{lstlisting}
+/*LAN:~#*/ ifconfig eth0 down
+\end{lstlisting}
+
+\begin{leftbar}
+	\noindent Q10.
+	Pour que les machines du réseau local (LAN, \textbf{192.168.1.0/24}) puissent communiquer avec des machines du réseau Internet (interface \textbf{eth0} du routeur) en passant par le routeur, il faut tout d'abord ajouter une règle IP Masquerade dans la table nat d'\emph{iptables} sur le routeur. IP Masquerade est un type de translation d'adresse permettant de remplacer l'IP des paquets du réseau local par l'IP du routeur côté Internet. Cela permet donc à un réseau local d'accéder à Internet avec une seule IP.
+	\begin{lstlisting}[numbers=none]
+# IP Masquerade
+iptables -t nat -A POSTROUTING -s 192.168.1.0/24 -o eth0 -j MASQUERADE
+	\end{lstlisting}
+	On autorise ensuite le réseau LAN à ping (protocole ICMP) une machine sur le réseau Internet en passant par le routeur.
+	\begin{lstlisting}[numbers=none]
+# ping LAN -> Internet
+iptables -A FORWARD -s 192.168.1.0/24 -o eth0 -p icmp --icmp-type echo-request -j ACCEPT
+iptables -A FORWARD -i eth0 -d 192.168.1.0/24 -m state --state ESTABLISHED,RELATED -p icmp -j ACCEPT
+	\end{lstlisting}
+	De même pour le protocole HTTP (couche application), nous autorisons le réseau LAN à envoyer des requêtes du protocole TCP (couche transport) sur les ports 80 (port par défaut HTTP) et 443 (port par défaut HTTPS) vers le port eth0 du routeur, et le routeur à répondre pour des connexions déjà établies.
+	\begin{lstlisting}[numbers=none]
+iptables -A FORWARD -s 192.168.1.0/24 -o eth0 -p tcp -m multiport --dports 80,443 -j ACCEPT
+iptables -A FORWARD -i eth0 -d 192.168.1.0/24 -p tcp -m state --state ESTABLISHED,RELATED -j ACCEPT
+	\end{lstlisting}
+\end{leftbar}
+
+\begin{leftbar}
+	\noindent Q11. Pour pouvoir utiliser les noms de domaines, il faut que les serveurs DNS puissent être joignables. Ces \emph{name servers} sont définis dans le fichier \textbf{/etc/resolv.conf}.
+	\begin{lstlisting}[caption=Exemple de nameservers (Google Public DNS) dans /etc/resolv.conf, numbers=none]
+nameserver 8.8.8.8
+nameserver 8.8.4.4
+	\end{lstlisting}
+	DNS utilise le protocole UDP sur le port 53, il faut donc autoriser ces requêtes provenant de LAN vers Internet, puis les réponses pour les connexions déjà établies dans le sens inverse.
+	\begin{lstlisting}[numbers=none]
+# LAN -> DNS
+iptables -A FORWARD -s 192.168.1.0/24 -o eth0 -p udp --dport 53 -j ACCEPT
+iptables -A FORWARD -i eth0 -d 192.168.1.0/24 -p udp -m state --state ESTABLISHED,RELATED -j ACCEPT
+	\end{lstlisting}
+\end{leftbar}
+
+\subsection{Filtrage DMZ et Internet}
+Le PC DMZ ne doit pas être directement visible d'Internet, nous devons donc désactiver son interface eth0 (déjà effectué précédemment).
+\begin{lstlisting}
+/*DMZ:~#*/ ifconfig eth0 down
+\end{lstlisting}
+De plus, nous allons utiliser le PC LAN pour simuler un accès d'une machine Internet. Nous devons donc réactiver son interface eth0 et désactiver son interface eth1. Sous Netkit, nous devons également ajouter la passerelle par défaut pour eth0 ayant pour IP celle de l'interface ajoutée sur le PC hôte.
+\begin{lstlisting}
+/*LAN:~#*/ ifconfig eth1 down
+/*LAN:~#*/ ifconfig eth0 up
+/*LAN:~#*/ route add default gw 10.0.0.1 eth0
+/*LAN:~#*/ route -n
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+10.0.0.0        0.0.0.0         255.0.0.0       U     0      0        0 eth0
+0.0.0.0         10.0.0.1        0.0.0.0         UG    0      0        0 eth0
+\end{lstlisting}
+
+\begin{leftbar}
+	\noindent Q12. Les requêtes envoyées sur l'adresse IP associée à l'interface eth0 du routeur (\textbf{10.0.0.2} ) sur le port 80 doivent être redirigées sur la DMZ (\textbf{192.168.2.1}) sur le port 8080. Pour cela nous ajoutons une règle PREROUTING dans la table nat d'iptables, permettant ainsi de masquer la destination du paquet, et de la remplacer par \textbf{192.168.2.1:8080}. Nous devons également autoriser les paquets du protocole TCP passant par le routeur entrant par l'interface eth0 à destination du PC DMZ sur le port 8080, et les réponses en sens inverse pour les connexions déjà établies.
+	\begin{lstlisting}[numbers=none]
+# 3.3 Filtrage DMZ et Internet
+iptables -t nat -A PREROUTING -i eth0 -d 10.0.0.2 -p tcp --dport 80 -j DNAT --to-destination 192.168.2.1:8080
+iptables -A FORWARD -i eth0 -d 192.168.2.1 -p tcp --dport 8080 -j ACCEPT
+iptables -A FORWARD -s 192.168.2.1 -o eth0 -p tcp --sport 8080 -m state --state ESTABLISHED,RELATED -j ACCEPT
+	\end{lstlisting}
+\end{leftbar}
+
+\begin{leftbar}
+	\noindent Q13. L'option \emph{-w} de \emph{tcpdump} permet d'écrire les paquets reçus dans un fichier, et l'option \emph{-s 0} permet de ne pas tronquer les paquets.
+	\begin{lstlisting}[numbers=none]
+/*LAN:~#*/ lynx 10.0.0.2
+-----------------------------------------------------------------------------------------------
+/*DMZ:~#*/ tcpdump -ni eth1 -s 0 -w /hosthome/Documents/dump2.pcap
+tcpdump: listening on eth1, link-type EN10MB (Ethernet), capture size 65535 bytes
+^C12 packets captured
+12 packets received by filter
+0 packets dropped by kerne
+	\end{lstlisting}
+	Le fichier peut être ensuite analysé à l'aide de \emph{wireshark} (figure \ref{fig:wireshark}). Wireshark permet de visualiser pour chaque paquet les en-têtes ajoutés par les différents protocoles, ainsi que les données. Sur la figure \ref{fig:wireshark}, nous pouvons observer deux paquets ayant la couche réseau comme couche la plus élevée et utilisant le protocole ARP permettant de traduire une IP en adresse physique (adresse Ethernet ici). Nous pouvons également observer une requête provenant du protocole HTTP (GET / HTTP.1.0) et la réponse associée :
+	\begin{lstlisting}[numbers=none]
+Line-based text data: text/html
+	<html><body><h1>It works!</h1></body></html>\n
+	\end{lstlisting}
+\end{leftbar}
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[scale=0.55]{wireshark.png}
+	\caption{Sortie de tcpdump visualisée avec wireshark}
+	\label{fig:wireshark}
+\end{figure}
 \newpage
 
-% TODO bibliography
+\makeatletter
+\renewcommand\refname{Ressources utilisées}
+\renewcommand\@biblabel[1]{\textbullet}
+\makeatother
 \begin{thebibliography}{5}
+\bibitem{bib:netkitwiki} \emph{Netkit Wiki}, \href{http://wiki.netkit.org/index.php/Main_Page}{http://wiki.netkit.org/index.php/Main\_Page}
+\bibitem{bib:netkittuto1} \emph{Dante's Lab: Creating virtual laboratories with Netkit (I)}, \href{http://danteslab-eng.blogspot.fr/2013/10/creating-virtual-laboratories-with.html}{http://danteslab-eng.blogspot.fr/2013/10/ creating-virtual-laboratories-with.html}
+\bibitem{bib:netkittuto2} \emph{Dante's Lab: Creating virtual laboratories with Netkit (II)}, \href{http://danteslab-eng.blogspot.fr/2013/10/creating-virtual-laboratories-with_19.html}{http://danteslab-eng.blogspot.fr/2013/10/ creating-virtual-laboratories-with\_19.html}
 \end{thebibliography}
 
 \end{document}
